@@ -42,7 +42,7 @@ const ViewPatientToAdmin = () => {
     if (!confirmDelete) return;
 
     fetch(`http://localhost:8080/api/admin/delete/id?userId=${patientId}`, {
-      method: "GET",
+      method: "DELETE",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",

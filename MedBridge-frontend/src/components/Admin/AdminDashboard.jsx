@@ -6,6 +6,7 @@ import {
   FaUserMd,
   FaClipboardList,
   FaUserPlus,
+  FaHourglassHalf,
 } from "react-icons/fa";
 import NavigationBar from "../Navbar/NavigationBar";
 import "./AdminDashboard.css"; // Make sure this CSS file exists
@@ -25,6 +26,12 @@ const AdminDashboard = () => {
       icon: <FaUserMd size={40} color="#198754" />,
       text: "See all doctors and manage them.",
       route: "/admin/dashboard/viewdoctor",
+    },
+    {
+      title: "Pending Doctors",
+      icon: <FaHourglassHalf size={40} color="#ffc107" />,
+      text: "Verify pending doctor registrations.",
+      route: "/admin/dashboard/pendingdoctors",
     },
     {
       title: "Check Appointments",

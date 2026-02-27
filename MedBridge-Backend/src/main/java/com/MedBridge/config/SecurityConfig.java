@@ -58,7 +58,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/patient/register", "/api/patient/login",
                         "/api/admin/gender", "/api/patient/bloodgroup/all",
                         "/api/doctor/register", "/api/doctor/login","/api/admin/register",
-                        "/api/admin/login", "/api/doctor/specialist/all","/api/doctor/by-speciality/**").permitAll()
+                        "/api/admin/login", "/api/doctor/specialist/all","/api/doctor/by-speciality/**",
+                        "/api/doctor/**","/api/doctor/image/**").permitAll()
 
                 // Role-based protection
 
@@ -66,12 +67,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/appointment/all","/api/appointment/id","/api/appointment/admin/assign/doctor","/api/admin/delete/id")
                         .hasAuthority("admin")
 
-                .antMatchers("/api/doctor/**","/api/appointment/id/update",
+                .antMatchers("/api/appointment/id/update",
                         "/api/admin/delete/id","/api/doctor/id").hasAuthority("doctor")
 
                 .antMatchers("/api/patient/**","/api/appointment/patient/add",
-                        "/api/appointment/patient/id","/api/payment/verify","/api/appointment/patient/update"
-                        ,"/api/payment/createOrder","/api/doctor/all").hasAuthority("patient")
+                        "/api/payment/verify","/api/appointment/patient/id","/api/payment/createOrder","/api/appointment/patient/update"
+                        ,"/api/payment/createOrder","/api/doctor/all","/api/ambulance/**").hasAuthority("patient")
 
                 .antMatchers("/api/doctor/all","/api/admin/delete/id").hasAnyAuthority("admin",  "doctor")
 

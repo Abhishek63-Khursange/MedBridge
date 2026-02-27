@@ -22,6 +22,7 @@ import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -88,13 +89,15 @@ public class DoctorController {
 
 		// Store image
 		String imageName = storageService.store(image);
+		LOG.info("Image stored with name: " + imageName);
 //		user.setDoctorImage(imageName);
 		user.getDoctor().setDoctorImage(imageName);
+		LOG.info("Doctor image set to: " + user.getDoctor().getDoctorImage());
 
 		// Encode password
 		String encodedPassword = passwordEncoder.encode(user.getPassword());
 		user.setPassword(encodedPassword);
-		user.setStatus(UserStatus.ACTIVE.value());
+		user.setStatus(UserStatus.PENDING.value());
 
 		// Save user
 		User registeredUser = userService.registerDoctor(user);
@@ -136,7 +139,7 @@ public class DoctorController {
 
 		if (user.getStatus() != Constants.UserStatus.ACTIVE.value()) {
 			useLoginResponse.setResponseCode(Constants.ResponseCode.FAILED.value());
-			useLoginResponse.setResponseMessage("User is Inactive");
+			useLoginResponse.setResponseMessage("Doctor account is not verified. Please wait for admin approval.");
 			return new ResponseEntity(useLoginResponse, HttpStatus.BAD_REQUEST);
 		}
 
@@ -182,22 +185,103 @@ public class DoctorController {
 		return ResponseEntity.ok(doctors);
 	}
 
+	@GetMapping("/pending")
+	public ResponseEntity<?> getPendingDoctors() {
+		LOG.info("recieved request for getting PENDING Doctors!!!");
+
+		List<User> doctors = this.userService.getAllUserByRoleAndStatus(UserRole.DOCTOR.value(), UserStatus.PENDING.value());
+
+		LOG.info("response sent!!!");
+		return ResponseEntity.ok(doctors);
+	}
+
+	@PostMapping("/verify/{doctorId}")
+	public ResponseEntity<?> verifyDoctor(@PathVariable int doctorId) {
+		LOG.info("recieved request to verify doctor with id: " + doctorId);
+
+		CommanApiResponse response = new CommanApiResponse();
+
+		User doctor = this.userService.getUserById(doctorId);
+		
+		if (doctor == null) {
+			response.setResponseCode(ResponseCode.FAILED.value());
+			response.setResponseMessage("Doctor not found");
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+		}
+
+		if (!doctor.getRole().equals(UserRole.DOCTOR.value())) {
+			response.setResponseCode(ResponseCode.FAILED.value());
+			response.setResponseMessage("User is not a doctor");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		doctor.setStatus(UserStatus.ACTIVE.value());
+		User updatedDoctor = this.userService.updateUser(doctor);
+
+		if (updatedDoctor != null) {
+			response.setResponseCode(ResponseCode.SUCCESS.value());
+			response.setResponseMessage("Doctor verified successfully");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			response.setResponseCode(ResponseCode.FAILED.value());
+			response.setResponseMessage("Failed to verify doctor");
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	@GetMapping(value = "/{doctorImageName}", produces = "image/*")
 	@ApiOperation(value = "Api to fetch doctor image by using image name")
 	public void fetchProductImage(@PathVariable("doctorImageName") String doctorImageName, HttpServletResponse resp) {
 		LOG.info("request came for fetching doctor pic");
 		LOG.info("Loading file: " + doctorImageName);
-		Resource resource = storageService.load(doctorImageName);
-		if (resource != null) {
-			try (InputStream in = resource.getInputStream()) {
-				ServletOutputStream out = resp.getOutputStream();
-				FileCopyUtils.copy(in, out);
-			} catch (IOException e) {
-				e.printStackTrace();
+		LOG.info("Base path: " + System.getProperty("user.dir"));
+		
+		try {
+			Resource resource = storageService.load(doctorImageName);
+			if (resource != null && resource.exists()) {
+				resp.setContentType("image/jpeg");
+				try (InputStream in = resource.getInputStream()) {
+					ServletOutputStream out = resp.getOutputStream();
+					FileCopyUtils.copy(in, out);
+				}
+				LOG.info("Image served successfully: " + doctorImageName);
+			} else {
+				LOG.warn("Image not found: " + doctorImageName);
+				LOG.warn("Resource is null or doesn't exist");
+				resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			}
+		} catch (Exception e) {
+			LOG.error("Error serving image: " + doctorImageName, e);
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
+	}
 
-		LOG.info("response sent!");
+	@GetMapping("/image/{imageName}")
+	@ApiOperation(value = "Api to get doctor image")
+	public ResponseEntity<?> getDoctorImage(@PathVariable String imageName) {
+		LOG.info("Received request for doctor image: " + imageName);
+		
+		try {
+			// Create a default image if not found
+			ClassPathResource resource = new ClassPathResource("static/images/default-doctor.jpg");
+			
+			if (!resource.exists()) {
+				// Create a simple placeholder response
+				return ResponseEntity.ok()
+					.contentType(org.springframework.http.MediaType.IMAGE_JPEG)
+					.body(new byte[0]);
+			}
+			
+			byte[] imageBytes = FileCopyUtils.copyToByteArray(resource.getInputStream());
+			
+			return ResponseEntity.ok()
+				.contentType(org.springframework.http.MediaType.IMAGE_JPEG)
+				.body(imageBytes);
+				
+		} catch (Exception e) {
+			LOG.error("Error serving image: " + e.getMessage());
+			return ResponseEntity.notFound().build();
+		}
 	}
 
 	@GetMapping("/specialist/all")

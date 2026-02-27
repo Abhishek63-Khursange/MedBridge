@@ -43,7 +43,11 @@ public class StorageServiceImpl implements StorageService {
 
 	@Override
 	public Resource load(String fileName) {
+		System.out.println("BASEPATH: " + BASEPATH);
 		File filePath = new File(BASEPATH, fileName);
+		System.out.println("Full file path: " + filePath.getAbsolutePath());
+		System.out.println("File exists: " + filePath.exists());
+		System.out.println("File can read: " + filePath.canRead());
 		if(filePath.exists())
 			return new FileSystemResource(filePath);
 		return null;

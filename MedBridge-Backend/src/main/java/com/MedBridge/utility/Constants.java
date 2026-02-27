@@ -125,7 +125,8 @@ public class Constants {
     
     public enum UserStatus {
 		ACTIVE(0),
-		DELETED(1);
+		PENDING(1),
+		DELETED(2);
 		
 		private int status;
 
@@ -136,6 +137,6 @@ public class Constants {
 	    public int value() {
 	      return this.status;
 	    }    
-	}
+    }
 	
 }

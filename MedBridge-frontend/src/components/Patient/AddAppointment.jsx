@@ -91,7 +91,27 @@ const AddAppointment = () => {
     try {
       setIsLoading(true);
 
-      // Step 1: Create Razorpay order
+      // Step 1: Save appointment first to get appointment ID
+      const appointmentResponse = await fetch("http://localhost:8080/api/appointment/patient/add", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(appointment),
+      });
+
+      if (!appointmentResponse.ok) {
+        throw new Error("Failed to save appointment");
+      }
+
+      const savedAppointment = await appointmentResponse.json();
+      const appointmentId = savedAppointment.id || savedAppointment.appointmentId;
+      
+      console.log("Appointment saved with ID:", appointmentId);
+
+      // Step 2: Create Razorpay order
       const orderRes = await fetch(
         `http://localhost:8080/api/payment/createOrder?amount=${amount}`,
         {
@@ -105,7 +125,7 @@ const AddAppointment = () => {
 
       const orderData = await orderRes.json();
 
-      // Step 2: Razorpay options
+      // Step 3: Razorpay options
       const options = {
         key: "rzp_test_TNpcedZQbcsMrm",
         amount: orderData.amount,
@@ -114,7 +134,7 @@ const AddAppointment = () => {
         description: "Appointment Payment",
         order_id: orderData.id,
         handler: async function (response) {
-          // Step 3: Verify payment
+          // Step 4: Verify payment with appointment ID
           const verifyRes = await fetch(
             "http://localhost:8080/api/payment/verify",
             {
@@ -127,33 +147,17 @@ const AddAppointment = () => {
                 order_id: orderData.id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
+                appointment_id: appointmentId, // ✅ Added appointment ID
               }),
             }
           );
 
           if (verifyRes.ok) {
-            // Step 4: Save appointment
-            fetch("http://localhost:8080/api/appointment/patient/add", {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify(appointment),
-            })
-              .then(async (res) => {
-                if (!res.ok) throw new Error(await res.text());
-                toast.success("Appointment booked and payment successful!");
-              })
-              .catch(() => {
-                toast.error("Payment done but appointment failed to save.");
-              })
-              .finally(() => setIsLoading(false));
+            toast.success("Appointment booked and payment successful!");
           } else {
             toast.error("Payment verification failed");
-            setIsLoading(false);
           }
+          setIsLoading(false);
         },
         prefill: {
           name: patient?.firstName || "Patient",
@@ -267,6 +271,7 @@ const AddAppointment = () => {
                         name="appointmentDate"
                         value={appointment.appointmentDate}
                         onChange={handleUserInput}
+                        min={new Date().toISOString().split("T")[0]}
                       />
                     </FloatingLabel>
 

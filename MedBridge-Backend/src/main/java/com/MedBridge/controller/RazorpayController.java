@@ -69,15 +69,41 @@ public class RazorpayController {
 
     @PostMapping("/verify")
     public ResponseEntity<?> verifyPayment(@RequestBody Map<String, String> data) {
-        boolean isVerified = razorpayService.verifyPayment(
-                data.get("order_id"),
-                data.get("razorpay_payment_id"),
-                data.get("razorpay_signature"));
+        try {
+            // Validate required parameters
+            String orderId = data.get("order_id");
+            String paymentId = data.get("razorpay_payment_id");
+            String signature = data.get("razorpay_signature");
+            String appointmentIdStr = data.get("appointment_id");
+            
+            if (orderId == null || paymentId == null || signature == null || appointmentIdStr == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Missing required parameters: order_id, razorpay_payment_id, razorpay_signature, appointment_id");
+            }
+            
+            System.out.println("Verifying payment with details:");
+            System.out.println("Order ID: " + orderId);
+            System.out.println("Payment ID: " + paymentId);
+            System.out.println("Appointment ID: " + appointmentIdStr);
+            
+            boolean isVerified = razorpayService.verifyPayment(
+                    orderId,
+                    paymentId,
+                    signature,
+                    Long.parseLong(appointmentIdStr));
 
-        if (isVerified) {
-            return ResponseEntity.ok("Payment verified");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
+            if (isVerified) {
+                return ResponseEntity.ok("Payment verified and emails sent successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
+            }
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid appointment_id format: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Payment verification failed: " + e.getMessage());
         }
     }
 }

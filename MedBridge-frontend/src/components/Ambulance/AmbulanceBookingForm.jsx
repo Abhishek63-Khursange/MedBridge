@@ -15,9 +15,16 @@ export default function AmbulanceBookingForm({ onBooked }) {
     e.preventDefault();
     setLoading(true);
     try {
+      const token = sessionStorage.getItem("token");
       const res = await axios.post(
         "http://localhost:8080/api/ambulance/book",
-        form
+        form,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
       );
       onBooked(res.data);
     } catch (err) {

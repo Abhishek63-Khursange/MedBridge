@@ -21,7 +21,7 @@ const Login = () => {
   const [loginRequest, setLoginRequest] = useState({
     emailId: "",
     password: "",
-    role: location.state?.role,
+    role: location.state?.role || "admin", // Default to admin
   });
 
   // Optional: scroll to top when component loads
@@ -63,6 +63,7 @@ const Login = () => {
       if (res.jwtToken) {
         sessionStorage.setItem("token", res.jwtToken);
         sessionStorage.setItem("role", loginRequest.role);
+        sessionStorage.setItem("firstName", res.firstName);
       }
 
       // Store user info and navigate based on role

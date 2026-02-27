@@ -9,6 +9,8 @@ import Login from "./components/Admin/Login";
 import PatientDashboard from "./components/Patient/PatientDashboard";
 import AddAppointment from "./components/Patient/AddAppointment";
 import ViewMyAppointment from "./components/Patient/ViewMyAppointment";
+import PatientAmbulanceBooking from "./components/Patient/PatientAmbulanceBooking";
+import AmbulanceHistory from "./components/Patient/AmbulanceHistory";
 import DoctorRegister from "./components/Doctor/DoctorRegister";
 import ViewDoctorAppointment from "./components/Doctor/ViewDoctorAppointment";
 import AdminRegistration from "./components/Admin/AdminRegistration";
@@ -17,6 +19,7 @@ import ViewPatientToAdmin from "./components/Admin/ViewPatientToAdmin";
 import ViewDoctorToAdmin from "./components/Admin/ViewDoctorToAdmin";
 import ViewAppointmentToAdmin from "./components/Admin/ViewAppointmentToAdmin";
 import AssignAppointment from "./components/Admin/AssignAppointment";
+import PendingDoctors from "./components/Admin/PendingDoctors";
 import NavigationBar from "./components/Navbar/NavigationBar";
 import MedBridgeFooter from "./components/Footer/MedBridgeFooter";
 import Ambulance from "./components/Ambulance/Ambulance";
@@ -54,6 +57,14 @@ function App() {
             path="/patient/viewAppointment"
             element={<ViewMyAppointment />}
           ></Route>
+          <Route
+            path="/patient/book-ambulance"
+            element={<PatientAmbulanceBooking />}
+          ></Route>
+          <Route
+            path="/patient/ambulance-history"
+            element={<AmbulanceHistory />}
+          ></Route>
         </Route>
 
         {/* Doctor Route*/}
@@ -74,6 +85,10 @@ function App() {
           <Route
             path="/admin/dashboard/viewdoctor"
             element={<ViewDoctorToAdmin />}
+          ></Route>
+          <Route
+            path="/admin/dashboard/pendingdoctors"
+            element={<PendingDoctors />}
           ></Route>
           <Route
             path="/admin/dashboard/appointment"

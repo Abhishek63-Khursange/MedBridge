@@ -65,6 +65,42 @@ const PatientDashboard = () => {
               </Card>
             </Col>
           </Row>
+
+          <Row className="justify-content-center">
+            <Col md={5} className="mb-4">
+              <Card
+                style={cardStyle}
+                onMouseEnter={handleHover}
+                onMouseLeave={handleLeave}
+                onClick={() => navigate("/patient/book-ambulance")}
+              >
+                <Card.Body className="text-center">
+                  <Card.Title className="mb-3">🚑 Book Ambulance</Card.Title>
+                  <Card.Text>
+                    Need emergency medical transport? Book an ambulance instantly.
+                  </Card.Text>
+                  <Button variant="danger">Book Ambulance</Button>
+                </Card.Body>
+              </Card>
+            </Col>
+
+            <Col md={5} className="mb-4">
+              <Card
+                style={cardStyle}
+                onMouseEnter={handleHover}
+                onMouseLeave={handleLeave}
+                onClick={() => navigate("/patient/ambulance-history")}
+              >
+                <Card.Body className="text-center">
+                  <Card.Title className="mb-3">📋 Ambulance History</Card.Title>
+                  <Card.Text>
+                    View your ambulance booking history and status.
+                  </Card.Text>
+                  <Button variant="info">View History</Button>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
         </Container>
       </div>
     </>

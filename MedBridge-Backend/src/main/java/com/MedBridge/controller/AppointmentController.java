@@ -2,6 +2,7 @@ package com.MedBridge.controller;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -67,6 +68,24 @@ public class AppointmentController {
 			return new ResponseEntity(response, HttpStatus.BAD_REQUEST);
 		}
 
+		// Validate appointment date is not in the past
+		if (appointment.getAppointmentDate() != null) {
+			try {
+				LocalDate appointmentDate = LocalDate.parse(appointment.getAppointmentDate());
+				LocalDate today = LocalDate.now();
+				
+				if (appointmentDate.isBefore(today)) {
+					response.setResponseCode(ResponseCode.FAILED.value());
+					response.setResponseMessage("Appointment date cannot be in the past");
+					return new ResponseEntity(response, HttpStatus.BAD_REQUEST);
+				}
+			} catch (Exception e) {
+				response.setResponseCode(ResponseCode.FAILED.value());
+				response.setResponseMessage("Invalid appointment date format");
+				return new ResponseEntity(response, HttpStatus.BAD_REQUEST);
+			}
+		}
+
 		appointment.setDate(LocalDate.now().toString());
 //		appointment.setStatus(AppointmentStatus.NOT_ASSIGNED_TO_DOCTOR.value());
 		appointment.setStatus(AppointmentStatus.TREATMENT_PENDING.value());
@@ -80,12 +99,15 @@ public class AppointmentController {
 
 		emailService.AppointmentBooked(EmailID,PatientName,addedAppointment,price);
 
-
-
 		if (addedAppointment != null) {
-			response.setResponseCode(ResponseCode.SUCCESS.value());
-			response.setResponseMessage("Appointment Added");
-			return new ResponseEntity(response, HttpStatus.OK);
+			// Create response with appointment ID
+			Map<String, Object> responseData = new HashMap<>();
+			responseData.put("responseCode", ResponseCode.SUCCESS.value());
+			responseData.put("responseMessage", "Appointment Added");
+			responseData.put("appointmentId", addedAppointment.getId());
+			responseData.put("appointment", addedAppointment);
+			
+			return new ResponseEntity(responseData, HttpStatus.OK);
 		}
 
 		else {

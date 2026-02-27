@@ -99,7 +99,7 @@ const ViewDoctorToAdmin = () => {
                   <tr key={index}>
                     <td>
                       <Image
-                        src={`http://localhost:8080/api/admin/${doctor.doctorImage}`}
+                        src={`http://localhost:8080/api/doctor/${doctor.doctor?.doctorImage || 'default-doctor.jpg'}`}
                         roundedCircle
                         width={60}
                         height={60}
@@ -107,6 +107,11 @@ const ViewDoctorToAdmin = () => {
                         style={{
                           objectFit: "cover",
                           border: "2px solid #007bff",
+                          backgroundColor: "#f8f9fa"
+                        }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='30' fill='%23ddd'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='12' fill='%23666'%3EDr%3C/text%3E%3C/svg%3E";
                         }}
                       />
                     </td>

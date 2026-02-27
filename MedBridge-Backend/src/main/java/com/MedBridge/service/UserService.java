@@ -79,6 +79,10 @@ public class UserService {
 		return this.userDao.findByRoleAndStatus(role, UserStatus.ACTIVE.value());
 	}
 
+	public List<User> getAllUserByRoleAndStatus(String role, int status) {
+		return this.userDao.findByRoleAndStatus(role, status);
+	}
+
 	public void deletUser(User user) {
 		this.userDao.delete(user);
 	}

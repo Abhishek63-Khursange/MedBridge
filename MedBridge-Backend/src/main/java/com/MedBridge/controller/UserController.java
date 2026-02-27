@@ -202,6 +202,52 @@ public class UserController {
 		return new ResponseEntity(response, HttpStatus.OK);
 	}
 	
+	@GetMapping("/pending/doctors")
+	@ApiOperation(value = "Api to get all pending doctors for admin verification")
+	public ResponseEntity<?> getPendingDoctors() {
+		LOG.info("Received request for getting PENDING Doctors!!!");
+		
+		List<User> doctors = userService.getAllUserByRoleAndStatus(UserRole.DOCTOR.value(), UserStatus.PENDING.value());
+		
+		LOG.info("Response sent!!!");
+		return ResponseEntity.ok(doctors);
+	}
+	
+	@PostMapping("/verify/doctor/{doctorId}")
+	@ApiOperation(value = "Api to verify a pending doctor")
+	public ResponseEntity<?> verifyDoctor(@PathVariable int doctorId) {
+		LOG.info("Received request to verify doctor with id: " + doctorId);
+		
+		CommanApiResponse response = new CommanApiResponse();
+		
+		User doctor = userService.getUserById(doctorId);
+		
+		if (doctor == null) {
+			response.setResponseCode(ResponseCode.FAILED.value());
+			response.setResponseMessage("Doctor not found");
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+		}
+		
+		if (!doctor.getRole().equals(UserRole.DOCTOR.value())) {
+			response.setResponseCode(ResponseCode.FAILED.value());
+			response.setResponseMessage("User is not a doctor");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+		
+		doctor.setStatus(UserStatus.ACTIVE.value());
+		User updatedDoctor = userService.updateUser(doctor);
+		
+		if (updatedDoctor != null) {
+			response.setResponseCode(ResponseCode.SUCCESS.value());
+			response.setResponseMessage("Doctor verified successfully");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			response.setResponseCode(ResponseCode.FAILED.value());
+			response.setResponseMessage("Failed to verify doctor");
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@DeleteMapping("/delete/id")
 	@ApiOperation(value = "Api to delete user by using user id")
 	public ResponseEntity<?> deleteUser(@RequestParam("userId") int userId) {

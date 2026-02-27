@@ -8,18 +8,37 @@ const NavigationBar = () => {
   const navigate = useNavigate();
   const [tokenPresent, setTokenPresent] = useState(false);
   const [role, setRole] = useState(null);
+  const [userName, setUserName] = useState(null);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    const storedRole = sessionStorage.getItem("role");
+    const updateAuthState = () => {
+      const token = sessionStorage.getItem("token");
+      const storedRole = sessionStorage.getItem("role");
+      const storedName = sessionStorage.getItem("firstName");
 
-    if (token) {
-      setTokenPresent(true);
-      setRole(storedRole);
-    } else {
-      setTokenPresent(false);
-      setRole(null);
-    }
+      if (token) {
+        setTokenPresent(true);
+        setRole(storedRole);
+        setUserName(storedName);
+      } else {
+        setTokenPresent(false);
+        setRole(null);
+        setUserName(null);
+      }
+    };
+
+    updateAuthState();
+    
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      updateAuthState();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const handleLogOut = () => {
@@ -27,6 +46,7 @@ const NavigationBar = () => {
     sessionStorage.clear(); // Also remove 'role' and any other user info
     setTokenPresent(false);
     setRole(null);
+    setUserName(null);
     navigate("/");
     window.location.reload(); // Ensures Navbar re-renders properly
   };
@@ -101,23 +121,36 @@ const NavigationBar = () => {
             >
               Contact-Us
             </Nav.Link>
-            <Nav.Link
-              href="/Ambulance"
-              className="ms-4 nav-link-custom"
-              style={{ color: "whitesmoke", fontWeight: "500" }}
-            >
-              Book Ambulance
-            </Nav.Link>
+            {tokenPresent && role === "patient" && (
+              <Nav.Link
+                href="/patient/book-ambulance"
+                className="ms-4 nav-link-custom"
+                style={{ color: "whitesmoke", fontWeight: "500" }}
+              >
+                Book Ambulance
+              </Nav.Link>
+            )}
           </Nav>
 
           <Nav>
+            {tokenPresent && userName && (
+              <span className="navbar-text me-3" style={{ color: "whitesmoke", fontWeight: "500" }}>
+                Hello {role?.charAt(0).toUpperCase() + role?.slice(1)} {userName}!
+              </span>
+            )}
             <Dropdown className="ms-4">
               <Dropdown.Toggle variant="secondary" id="user-dropdown">
                 {tokenPresent ? "Logout" : "Login"}
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 {tokenPresent ? (
-                  <Dropdown.Item onClick={handleLogOut}>Logout</Dropdown.Item>
+                  <>
+                    <Dropdown.Item onClick={handleDashboardRedirect}>
+                      🏠 Dashboard
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={handleLogOut}>Logout</Dropdown.Item>
+                  </>
                 ) : (
                   <>
                     <Dropdown.Item onClick={() => handleLogin("admin")}>
